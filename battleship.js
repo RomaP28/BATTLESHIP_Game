@@ -57,34 +57,63 @@ var model = {
 //conroller принимает ввод игрока расшифровывает и отправляет в объект model;
 var controller = {
   guesses: 0,
-  parseGuess: function (guess) {
-    var alphabet = ["A", "B", "C", "D", "E", "F", "G"];
-    if (guess === null || guess.length !== 2) {
-      alert("Oops, please enter a letter and a number on the board.");
-    } else {
-      firstChar = guess.charAt(0);
-      var row = alphabet.indexOf(firstChar);
-      var column = guess.charAt(1);
-
-      if (isNaN(row) || isNaN(column)) {
-        alert("Oops, that isn't on the board.");
-      } else if (
-        row < 0 ||
-        row >= model.boardSize ||
-        column < 0 ||
-        column >= model.boardSize
-      ) {
-        alert("Oops, that's off the board.");
+  processGuess: function (guess) {
+    function parseGuess(guess) {
+      var alphabet = ["A", "B", "C", "D", "E", "F", "G"];
+      if (guess === null || guess.length !== 2) {
+        alert("Oops, please enter a letter and a number on the board.");
       } else {
-        return row + column;
+        firstChar = guess.charAt(0);
+        var row = alphabet.indexOf(firstChar);
+        var column = guess.charAt(1);
+  
+        if (isNaN(row) || isNaN(column)) {
+          alert("Oops, that isn't on the board.");
+        } else if (
+          row < 0 ||
+          row >= model.boardSize ||
+          column < 0 ||
+          column >= model.boardSize
+        ) {
+          alert("Oops, that's off the board.");
+        } else {
+          return row + column;
+        }
+      }
+      return null;
+    }
+    var location = parseGuess(guess);
+    if (location) {
+      this.guesses++;
+      var hit = model.fire(location);
+      if (hit && model.shipsSunk === model.numShips) {
+        view.displayMessage("You sank all my battleships, in " + this.guesses + " guesses");
       }
     }
-    return null;
+
   },
 };
-
-// console.log(controller.parseGuess("A0"));
-// console.log(controller.parseGuess("B6"));
-// console.log(controller.parseGuess("G3"));
-// console.log(controller.parseGuess("H0"));
-// console.log(controller.parseGuess("A7"));
+//отправляем данные из поля ввода в controller
+function handleFireButton(){
+  var guessInput = document.getElementById("guessInput");
+  var guess = guessInput.value;
+  controller.processGuess(guess);
+  guessInput.value = "";
+}
+//отслеживаем нажатие кнопки fire или нажатие клавиши enter
+function init() {
+  var fireButton = document.getElementById("fireButton");
+  fireButton.onclick = handleFireButton;
+  var guessInput = document.getElementById("guessInput");
+  guessInput.onkeypress = handleKeyPress;
+}
+//проверяем если нажата клавиша enter
+function handleKeyPress(e) {
+  var fireButton = document.getElementById("fireButton");
+  if(e.keyCode === 13) {
+    fireButton.click();
+    return false;
+  }
+}
+//выполняем функцию init после полной хагрузки html
+window.onload = init;
